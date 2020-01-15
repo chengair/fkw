@@ -28,6 +28,7 @@ class FindKeyWords():
     def __init__(self):
         self.__Loadkeywords()
         self.keywords_finded=[]
+        self.keywords_jiebafinded=[]
 
     def Read_describe_by_excel(self,fpath):
         df=pd.read_excel(fpath,sheet_name=0)
@@ -46,12 +47,29 @@ class FindKeyWords():
         except:
             self.__Log(sys.exc_info[0])
 
+    def jiebafind(self):
+        jieba.load_userdict('keywords.txt')
+        for row in self.describes:
+            tempkw=set()
+            tempnotkw=set()
+            for col in row:
+                seg_list=jieba.cut(col,cut_all=False)
+                for segword in seg_list:
+                    segword=segword.strip()
+                    if segword in self.keywordsdict:
+                        tempkw.add(segword)
+                    else:
+                        tempnotkw.add(segword)
+            self.keywords_jiebafinded.append([list(tempkw),list(tempnotkw)])
+            
 
 
 if __name__ == "__main__":
     fkw=FindKeyWords()
     fkw.Read_describe_by_excel('data/样例.xlsx')
-    fkw.Find()
-    for k in fkw.keywords_finded:
-        print(k)
-    pass
+    fkw.jiebafind()
+    outf=open('data/out.txt','w')
+    print(len(fkw.keywords_jiebafinded))
+    for k in fkw.keywords_jiebafinded:
+        outf.write(str(k)+'\n')
+    outf.close()
