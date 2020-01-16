@@ -4,13 +4,14 @@ import sqlite3
 import time
 import pandas as pd
 import tkinter as tk
+import threading
 import tkinter.filedialog as tkfd
 import sys
 from collections import defaultdict
 
 class FindKeyWords():
     def __Log(self,msg):
-        logf=open('log.txt','a')
+        logf=open('data/log.txt','a')
         logf.write(time.strftime('%Y-%m-%d %H:%M')+': '+msg+'\n')
         logf.close()
 
@@ -61,15 +62,44 @@ class FindKeyWords():
                     else:
                         tempnotkw.add(segword)
             self.keywords_jiebafinded.append([list(tempkw),list(tempnotkw)])
-            
+    
+    def jiebaout(self):
+        outf=open('data/out.txt','w')
+        for lkw in self.keywords_jiebafinded:
+            outf.write('，'.join(lkw[0])+','+','.join(lkw[1])+'\n')
 
+        outf.close()
+
+
+class Gui():
+    def __init__(self):
+        self.main=tk.Tk()
+        self.main.title("findkeywords")
+        self.main.geometry('{}x{}'.format(500, 260))
+        self.btcheck=tk.Button(self.main, text='find', command=self.__loadfile)
+        self.btcheck.pack(pady=10, side='top')
+        self.text1 = tk.Text(self.main)
+        self.text1.pack()
+
+
+    def __find(self,fpath):
+        fkw=FindKeyWords()
+        fkw.Read_describe_by_excel(fpath)
+        fkw.jiebafind()
+        fkw.jiebaout()
+        self.text1.insert(tk.END, '完成')
+        pass
+    
+    def __loadfile(self):
+        fpath=tk.filedialog.askopenfilename()
+        if fpath!='':
+            p=threading.Thread(target=self.__find(fpath))
+            p.start()
 
 if __name__ == "__main__":
-    fkw=FindKeyWords()
-    fkw.Read_describe_by_excel('data/样例.xlsx')
-    fkw.jiebafind()
-    outf=open('data/out.txt','w')
-    print(len(fkw.keywords_jiebafinded))
-    for k in fkw.keywords_jiebafinded:
-        outf.write(str(k)+'\n')
-    outf.close()
+    #fkw=FindKeyWords()
+    #fkw.Read_describe_by_excel('data/样例.xlsx')
+    form1=Gui()
+    form1.main.mainloop() 
+
+    pass
