@@ -11,7 +11,7 @@ from collections import defaultdict
 
 class FindKeyWords():
     def __Log(self,msg):
-        logf=open('data/log.txt','a')
+        logf=open('data/log.txt','a',encoding='utf8')
         logf.write(time.strftime('%Y-%m-%d %H:%M')+': '+msg+'\n')
         logf.close()
 
@@ -64,11 +64,19 @@ class FindKeyWords():
             self.keywords_jiebafinded.append([list(tempkw),list(tempnotkw)])
     
     def jiebaout(self):
-        outf=open('data/out.txt','w')
+        outf=open('data/out.txt','w',encoding='utf8')
         for lkw in self.keywords_jiebafinded:
-            outf.write('，'.join(lkw[0])+','+','.join(lkw[1])+'\n')
+            #outf.write('，'.join(lkw[0])+','+','.join(lkw[1])+'\n')
+            outf.write('|'.join(lkw[0])+'\n')
 
         outf.close()
+
+        outfnot=open('data/outfnot.txt','w',encoding='utf8')
+        for lkw in self.keywords_jiebafinded:
+            #outf.write('，'.join(lkw[0])+','+','.join(lkw[1])+'\n')
+            outfnot.write('|'.join(lkw[1])+'\n')
+
+        outfnot.close()
 
 
 class Gui():
