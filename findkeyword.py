@@ -18,11 +18,13 @@ class FindKeyWords():
     def __Loadkeywords(self):
         self.keywordsdict=defaultdict(int)
         try:
-            conn=sqlite3.connect('fkw.db')  #连接数据库，如果没有，则新建
-            query=conn.cursor()
-            res=query.execute('select * from keywords')
-            for kw in res:
-                self.keywordsdict[kw[0]]=1
+            df=pd.read_excel('keywords.xlsx',sheet_name=0)
+            df.fillna('',inplace=True)  #替换NAN数据
+            for i in range(df.shape[0]):
+                if df.iloc[i,1]=='':
+                    self.keywordsdict[df.iloc[i,0]]=df.iloc[i,0]
+                else:
+                    self.keywordsdict[df.iloc[i,0]]=df.iloc[i,1]
         except:
             self.__Log(sys.exc_info[0])
 
@@ -43,10 +45,16 @@ class FindKeyWords():
                 for col in row:
                     for kw in self.keywordsdict.keys():
                         if col.find(kw)>-1:
-                            tempkeyw.add(kw)
+                            tempkeyw.add(self.keywordsdict[kw])
                 self.keywords_finded.append(list(tempkeyw))
         except:
             self.__Log(sys.exc_info[0])
+        
+        outf=open('data/directout.txt','w',encoding='utf8')
+        for lkw in self.keywords_finded:
+            #outf.write('，'.join(lkw[0])+','+','.join(lkw[1])+'\n')
+            outf.write('|'.join(lkw)+'\n')
+        outf.close()
 
     def jiebafind(self):
         jieba.load_userdict('keywords.txt')
@@ -58,7 +66,7 @@ class FindKeyWords():
                 for segword in seg_list:
                     segword=segword.strip()
                     if segword in self.keywordsdict:
-                        tempkw.add(segword)
+                        tempkw.add(self.keywordsdict[segword])
                     else:
                         tempnotkw.add(segword)
             self.keywords_jiebafinded.append([list(tempkw),list(tempnotkw)])
@@ -67,17 +75,17 @@ class FindKeyWords():
         outf=open('data/out.txt','w',encoding='utf8')
         for lkw in self.keywords_jiebafinded:
             #outf.write('，'.join(lkw[0])+','+','.join(lkw[1])+'\n')
-            outf.write('|'.join(lkw[0])+'\n')
+            outf.write('，'.join(lkw[0])+'\n')
 
         outf.close()
 
+        '''
         outfnot=open('data/outfnot.txt','w',encoding='utf8')
         for lkw in self.keywords_jiebafinded:
             #outf.write('，'.join(lkw[0])+','+','.join(lkw[1])+'\n')
             outfnot.write('|'.join(lkw[1])+'\n')
-
         outfnot.close()
-
+        '''
 
 class Gui():
     def __init__(self):
@@ -95,6 +103,7 @@ class Gui():
         fkw.Read_describe_by_excel(fpath)
         fkw.jiebafind()
         fkw.jiebaout()
+        fkw.Find()
         self.text1.insert(tk.END, '完成')
         pass
     
